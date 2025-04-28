@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/login_services.dart';
 
 class GetSuperadminService {
@@ -6,19 +7,20 @@ class GetSuperadminService {
   GetSuperadminService(this.dio);
 
   Future<Map<String, dynamic>> getSuperadminInfo() async {
-    String? token = await LoginServices(Dio()).getToken();
-    Response response =
-        await dio.get('http://10.0.2.2:5000/api/users/super_admin_profile',
-            options: Options(headers: {
-              "Content-Type": "application/json",
-              'Authorization': 'Bearer $token',
-            }));
-    Map<String, dynamic> jasondata = response.data;
+    try {
+      String? token = await LoginServices(Dio()).getToken();
+      Response response = await dio.get('$baseUrl/users/profile',
+          options: Options(headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $token',
+          }));
+      Map<String, dynamic> jasondata = response.data;
 
-    print(jasondata);
-    return jasondata;
+      return jasondata;
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
   }
-
 }
 
 // options: Options(headers: {

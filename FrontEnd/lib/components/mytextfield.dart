@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 
 class MyTextfield extends StatelessWidget {
   // ignore: prefer_typing_uninitialized_variables
   final controller;
   final String labelText;
-  bool obscureText = false;
+  bool? obscureText = false;
   IconButton? suffixIcon;
   double? width;
   int? maxlines;
   int? minlines;
   String? helper;
+  TextInputType? keyboardType;
+  String? pertext;
+  final void Function(String)? onChanged;
   MyTextfield(
       {super.key,
       this.maxlines,
@@ -20,7 +23,10 @@ class MyTextfield extends StatelessWidget {
       this.controller,
       this.suffixIcon,
       required this.labelText,
-      required this.obscureText});
+      this.obscureText,
+      this.keyboardType,
+      this.pertext,
+      this.onChanged});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -29,8 +35,8 @@ class MyTextfield extends StatelessWidget {
           BoxShadow(
             color: const Color.fromARGB(36, 69, 80, 112).withOpacity(0.15),
             spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(5, 10),
+            blurRadius: 5,
+            offset: const Offset(2, 4),
           )
         ],
         color: const Color.fromARGB(255, 255, 255, 255),
@@ -39,12 +45,13 @@ class MyTextfield extends StatelessWidget {
       child: SizedBox(
         width: width ?? 350,
         child: TextField(
-          
+          keyboardType: keyboardType ?? TextInputType.text,
           minLines: minlines,
-          maxLines: maxlines??1,
+          maxLines: maxlines ?? 1,
           controller: controller,
-          obscureText: obscureText,
+          obscureText: obscureText ?? false,
           decoration: InputDecoration(
+            prefixText: pertext ?? "",
             enabledBorder: const OutlineInputBorder(
               borderSide: BorderSide(
                 color: Colors.grey,
@@ -57,6 +64,7 @@ class MyTextfield extends StatelessWidget {
             labelStyle: const TextStyle(color: Color.fromARGB(255, 71, 71, 71)),
             hintText: helper,
           ),
+          onChanged: onChanged,
         ),
       ),
     );

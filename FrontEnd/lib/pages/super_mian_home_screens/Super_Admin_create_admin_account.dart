@@ -1,8 +1,10 @@
+// ignore: file_names
+// ignore: file_names
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/mybutton.dart';
 import 'package:login_page/components/mytextfield.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/create__admin_acc_service.dart';
 import 'package:login_page/services/login_services.dart';
 

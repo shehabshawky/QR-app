@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginServices {
@@ -16,7 +17,7 @@ class LoginServices {
       String? address}) async {
     try {
       Response response = await dio.post(
-        'http://10.0.2.2:5000/api/users/register',
+        '$baseUrl/users/register',
         data: {
           "name": name,
           "email": email,
@@ -42,7 +43,7 @@ class LoginServices {
     Future<Map<String, dynamic>> login({String? email, String? password}) async {
   try {
     Response response = await dio.post(
-      'http://10.0.2.2:5000/api/users/login',
+      '$baseUrl/users/login',
       data: {"email": email, "password": password},
       options: Options(headers: {"Content-Type": "application/json"}),
     );

@@ -2,7 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/myField_display.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/models/adminslistmodel.dart';
 import 'package:login_page/services/delet_admin_acc_service.dart';
 import 'package:login_page/services/register_services.dart';
@@ -67,20 +67,20 @@ class SuperAdminCompanyProfile extends StatelessWidget {
           const SizedBox(height: 20),
           CircleAvatar(
             radius: 80,
-            // backgroundImage: AssetImage(
-            //     "assets/company_logo.png"),
-            backgroundColor: const Color(0xFFF4F8FA),
-            child: Column(
-              children: [
-                Text(
-                  company.name[0],
-                  style: const TextStyle(
-                    fontSize: 100,
-                    color: MYmaincolor,
-                  ),
-                ),
-              ],
-            ),
+            backgroundImage: NetworkImage(
+                company.image ?? 'https://picsum.photos/250?image=9'),
+            // backgroundColor: const Color(0xFFF4F8FA),
+            // child: Column(
+            //   children: [
+            //     Text(
+            //       company.name[0],
+            //       style: const TextStyle(
+            //         fontSize: 100,
+            //         color: MYmaincolor,
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ),
 
           const SizedBox(height: 15), // Spacing
@@ -92,7 +92,7 @@ class SuperAdminCompanyProfile extends StatelessWidget {
               fontWeight: FontWeight.w400,
             ),
           ),
-          SizedBox(height: 60),
+          const SizedBox(height: 60),
           FieldDisplay(label: "Email : ", labelValue: company.email),
           FieldDisplay(
               label: "Number of Products : ",
@@ -103,5 +103,9 @@ class SuperAdminCompanyProfile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String getimage() {
+    return company.image ?? "https://picsum.photos/250?image=9";
   }
 }

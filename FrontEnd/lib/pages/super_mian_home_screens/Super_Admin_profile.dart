@@ -3,13 +3,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/myField_display.dart';
 import 'package:login_page/components/mybutton.dart';
-import 'package:login_page/main.dart';
-
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/get_superadmin_service.dart';
 import 'package:login_page/services/login_services.dart';
 
 class SuperAdminProfile extends StatefulWidget {
-  SuperAdminProfile({super.key});
+  const SuperAdminProfile({super.key});
 
   @override
   State<SuperAdminProfile> createState() => _SuperAdminProfileState();
@@ -59,7 +58,6 @@ class _SuperAdminProfileState extends State<SuperAdminProfile> {
                   radius: 80,
                   backgroundColor: const Color(0xFFF4F8FA),
                   child: Column(
-                    
                     children: [
                       Text(
                         superinfo!["name"][0],
@@ -98,7 +96,8 @@ class _SuperAdminProfileState extends State<SuperAdminProfile> {
                   buttonName: "Log Out",
                   onPressed: () {
                     LoginServices(Dio()).deleteToken();
-                    Navigator.pushNamed(context, 'LoginPage');
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, 'LoginPage', (Route<dynamic> route) => false);
                   },
                   buttonWidth: 120,
                   buttonHeight: 40,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:login_page/main.dart';
+
 import 'package:login_page/models/adminslistmodel.dart';
 import 'package:login_page/pages/super_mian_home_screens/Super_Admin_company_profile.dart';
 
@@ -7,11 +7,7 @@ class Myitemlist extends StatelessWidget {
   Adminslistmodel adminsmodel;
   int index;
 
-  Myitemlist({
-    super.key,
-    required this.adminsmodel,
-    required this.index
-  });
+  Myitemlist({super.key, required this.adminsmodel, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -43,25 +39,12 @@ class Myitemlist extends StatelessWidget {
           child: Column(
             children: [
               Row(
-
                 children: [
                   CircleAvatar(
-                    backgroundImage: adminsmodel.image,
-                    backgroundColor: const Color.fromARGB(255, 238, 246, 250),
+                    backgroundImage: NetworkImage(
+                        SuperAdminCompanyProfile(company: adminsmodel)
+                                .getimage()),
                     radius: 20,
-                    child: Column(
-                      
-                      children: [
-                        Text(
-                          adminsmodel.name[0],
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: MYmaincolor,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(
                     width: 10,

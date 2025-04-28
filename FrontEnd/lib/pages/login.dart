@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/mytextfield.dart';
 import 'package:login_page/components/mybutton.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/login_services.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         } else if (role == 'admin') {
           Navigator.pushReplacementNamed(context, 'adminmainscreen');
         } else if (role == 'client') {
-          Navigator.pushReplacementNamed(context, 'clientmainpage');
+          Navigator.pushReplacementNamed(context, 'clientHomeScreen');
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +129,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             //forget password
-
+            const SizedBox(
+              height: 5,
+            ),
             SizedBox(
               width: 350,
               height: 30,

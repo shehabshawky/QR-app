@@ -14,13 +14,25 @@ class Myproductinfolist extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text to top
             children: [
-              Text("$laple : "),
+              // Label part
               Text(
-                value,
-                style: const TextStyle(
-                    color: Color(0xFF2E7E4A), fontWeight: FontWeight.w500),
+                "$laple: ",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+
+              // Value part with flexible width
+              Flexible(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    color: Color(0xFF2E7E4A),
+                    fontWeight: FontWeight.w800,
+                  ),
+                  softWrap: true, // Enable text wrapping
+                  overflow: TextOverflow.visible, // Allow text to expand
+                ),
               ),
             ],
           ),

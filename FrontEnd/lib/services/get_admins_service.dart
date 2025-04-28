@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/models/adminslistmodel.dart';
 
 // class GetAdminsService {
@@ -29,15 +30,19 @@ class GetAdminsService {
 
   final List<Adminslistmodel> adminslist = [];
   Future<List<Adminslistmodel>> getAdmins(String? token) async {
-    Response response = await dio.get('http://10.0.2.2:5000/api/users/admins',
-        options: Options(headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token"
-        }));
-    List<dynamic> adminsListjason = response.data;
-    for (var items in adminsListjason) {
-      adminslist.add(Adminslistmodel.fromJson(items));
-    }
-    return adminslist;
+    try {
+  Response response = await dio.get('$baseUrl/users/admins',
+      options: Options(headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token"
+      }));
+  List<dynamic> adminsListjason = response.data;
+  for (var items in adminsListjason) {
+    adminslist.add(Adminslistmodel.fromJson(items));
+  }
+  return adminslist;
+}  catch (e) {
+  throw Exception('Error: $e');
+}
   }
 }

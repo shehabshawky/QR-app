@@ -1,20 +1,34 @@
 const mongoose = require('mongoose');
-const express = require("express");
+const express = require('express');
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: './../config.env' });
 const validator = require('validator');
 const upload = require('../Middlewares/upload');
-const fs = require("fs");
+const fs = require('fs');
 const User = require('../Models/User');
 const { auth, role } = require('../Middlewares/auth');
 
 // route -> /api/users
 const router = express.Router();
 
-// gets super admin profile ( name, email )
-router.get('/super_admin_profile', auth, role('super_admin'), async (req, res) => {
+router.get('/profile', auth, async (req, res) => {
     try{
-        const user = await User.findById(req.user._id).select('name email -_id');
+        let user = null;
+        if (req.user.role === 'admin'){
+            user = await User.findById(req.user._id).select('name email icon -_id');
+            if (user.icon){
+                user.icon = `${req.protocol}://${req.hostname}:${process.env.port}/${user.icon}`;
+            }
+        }
+        else if (req.user.role === 'client'){
+            user = await User.findById(req.user._id).select('name email photo address phone_number -_id');
+            if (user.photo){
+                user.photo = `${req.protocol}://${req.hostname}:${process.env.port}/${user.photo}`;
+            }
+        }
+        else{
+            user = await User.findById(req.user._id).select('name email -_id');
+        }
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -23,10 +37,9 @@ router.get('/super_admin_profile', auth, role('super_admin'), async (req, res) =
         res.status(404).json(error.message);
     }
 });
-// gets all the admins ( name, email, icon, productsCount, QRCodesCount )
 router.get('/admins', auth, role('super_admin'), async (req, res) => {
-    try{
-        const admins = await User.aggregate([
+    try {
+        var admins = await User.aggregate([
             { $match: { role: 'admin' } },
             {
                 $lookup: {
@@ -44,10 +57,10 @@ router.get('/admins', auth, role('super_admin'), async (req, res) => {
             },
             {
                 $lookup: {
-                    from: 'units',
+                    from: 'reports',
                     localField: 'products._id',
                     foreignField: 'product',
-                    as: 'units'
+                    as: 'products.reports'
                 }
             },
             {
@@ -56,8 +69,10 @@ router.get('/admins', auth, role('super_admin'), async (req, res) => {
                     name: { $first: '$name' }, // admin name
                     email: { $first: '$email' }, // admin email
                     icon: { $first: '$icon' }, // admin icon
-                    productsCount: { $sum: { $cond: [{ $ifNull: ['$products', false] }, 1, 0] } }, // total number of products
-                    QRCodesCount: { $sum: { $size: { $ifNull: ['$units', []] } } } // total number of units across all products
+                    productsCount: { $sum: { $cond: [ { $and: [{ $ifNull: ['$products._id', false] }, { $ne: ['$products._id', null] }] }, 1, 0 ] } }, // total number of products
+                    QRCodesCount: { $sum: { $size: { $ifNull: ['$products.units', []] } } }, // total number of units across all products
+                    scannedUnitsCount: { $sum: { $size: { $filter: { input: { $ifNull: ['$products.units', []] }, as: 'unit', cond: { $eq: ['$$unit.status', 'scanned'] }  } } } }, // total number of scanned units
+                    counterfeitReportsCount: { $sum: { $size: { $filter: { input: { $ifNull: ['$products.reports', []] }, as: 'report', cond: { $eq: ['$$report.status', 'counterfeit'] } } } } } // total number of counterfeit reports
                 }
             },
             {
@@ -66,26 +81,29 @@ router.get('/admins', auth, role('super_admin'), async (req, res) => {
                     id: { $toString: '$_id' },
                     name: 1,
                     email: 1,
-                    icon: 1,
+                    icon: {
+                        $cond: {
+                            if: { $gt: [{ $type: "$icon" }, "missing"] },
+                            then: { $concat: [ req.protocol + "://", req.hostname + ":", { $toString: process.env.port }, "/", "$icon" ] },
+                            else: null
+                        }
+                    },
                     productsCount: 1,
-                    QRCodesCount: 1
+                    QRCodesCount: 1,
+                    scannedUnitsCount: 1,
+                    counterfeitReportsCount: 1
                 }
             }
         ]);
-        for (const admin of admins) {
-            if (admin.icon) {
-                admin.icon = `${req.protocol}://${req.hostname}:${process.env.port}/${admin.icon}`;
-            } else {
-                admin.icon = null;
-            }
-        }
+        admins = req.query.name
+            ? admins.filter(admin => admin.name.toLowerCase().includes(req.query.name.toLowerCase()))
+            : admins;
         res.status(200).json(admins);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// creates client acccount
 router.post('/register', async (req, res) => {
     const { name, email, password, address, phone_number } = req.body;
     if (!name || !email || !password) {
@@ -108,7 +126,6 @@ router.post('/register', async (req, res) => {
         res.status(500).json(error.message);
     };
 });
-// creates admin account
 router.post('/create-admin-account', auth, role('super_admin'), async (req, res) => {
     const { name, email, password} = req.body;
     if (!name || !email || !password) {
@@ -131,7 +148,6 @@ router.post('/create-admin-account', auth, role('super_admin'), async (req, res)
         res.status(500).json(error.message);
     };
 });
-// login for all users
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -145,14 +161,26 @@ router.post('/login', async (req, res) => {
         if (!user || !(await user.comparePassword(password))) {
             return res.status(401).send('Invalid email or password');
         }
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.token);
+        const payload = {
+            id: user._id,
+            role: user.role
+        };
+        if (user.role === 'admin') {
+            payload.name = user.name;
+            if (user.icon)
+                { payload.icon = `${req.protocol}://${req.hostname}:${process.env.port}/${user.icon}`; }
+        } else if (user.role === 'client') {
+            payload.name = user.name;
+            if (user.photo)
+                { payload.photo = `${req.protocol}://${req.hostname}:${process.env.port}/${user.photo}`; }
+        }
+        const token = jwt.sign(payload, process.env.token);
         res.status(200).json({ token });
     } catch (error) {
         res.status(400).json(error.message);
     }
 });
 
-// TMP api for changing password
 router.patch('/change-password', auth, async (req, res) => {
     try{
         const { currentPassword, newPassword } = req.body;
@@ -178,23 +206,21 @@ router.patch('/change-password', auth, async (req, res) => {
         res.status(400).json(error.message);
     }
 });
-// updates admin icon
 router.patch('/change-admin-icon', auth, role('admin'), upload.single("icon"), async (req, res) => {
     try{
         if (!req.file) {
-            return res.status(400).json({msg: "icon is Required"}); 
+            return res.status(400).json({ message: "icon is Required" }); 
         }
         const admin = await User.findById(req.user.id);
         if (!admin) {
+            fs.unlinkSync(req.file.path);
             return res.status(404).json({ message: 'user not found' });
-        }
-        if (admin.role !== 'admin'){
-            return res.status(403).json({ message: 'This user is not an admin' });
         }
         if (admin.icon) {
             try {
                 fs.unlinkSync("./upload/" + admin.icon);
             } catch (err) {
+                fs.unlinkSync(req.file.path);
                 console.error('Failed to delete old icon:', err);
             }
         }
@@ -202,17 +228,48 @@ router.patch('/change-admin-icon', auth, role('admin'), upload.single("icon"), a
         await admin.save();
         res.status(200).json({ message: 'Icon updated successfully' });
     }catch(error){
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
         res.status(500).json({ message: 'Failed to update icon', error: error.message });
     }
 });
+router.patch('/change-client-photo', auth, role('client'), upload.single("photo"), async (req, res) => {
+    try{
+        if (!req.file) {
+            return res.status(400).json({ message: "photo is Required" }); 
+        }
+        const client = await User.findById(req.user.id);
+        if (!client) {
+            fs.unlinkSync(req.file.path);
+            return res.status(404).json({ message: 'user not found' });
+        }
+        if (client.photo) {
+            try {
+                fs.unlinkSync("./upload/" + client.photo);
+            } catch (err) {
+                fs.unlinkSync(req.file.path);
+                console.error('Failed to delete old photo:', err);
+            }
+        }
+        client.photo = req.file.filename;
+        await client.save();
+        res.status(200).json({ message: 'Photo updated successfully' });
+    }catch(error){
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ message: 'Failed to update photo', error: error.message });
+    }
+});
 
-// deletes admin
 router.delete('/admin/:id', auth, role('super_admin'), async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: 'Invalid user ID' });
         }
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -226,10 +283,11 @@ router.delete('/admin/:id', auth, role('super_admin'), async (req, res) => {
                 console.error('Failed to delete icon:', err);
             }
         }
+        await User.findByIdAndDelete(id);
         res.status(200).json({ message: 'User deleted successfully', user });
     } catch (error) {
         res.status(400).send(error.message);
     }
 });
 
-module.exports =  router;
+module.exports = router;

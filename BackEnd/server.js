@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
-const express = require("express");
+const express = require('express');
 const cors = require('cors');
 require('dotenv').config({ path: './config.env' });
 const users = require('./Routes/users');
+const products = require('./Routes/products');
+const reports = require('./Routes/reports');
+const analytics = require('./Routes/analytics');
+const recommendations = require('./Routes/recommendationRoutes');
 
 // DB connection
 mongoose.connect(process.env.db)
@@ -21,8 +25,17 @@ app.use(cors(corsOptions));
 // uploads
 app.use(express.static("upload"));
 
+// health_check
+app.use("/api/health", async (req, res) => {
+    res.status(200).send("Server is alive!");
+});
+
 // routes
 app.use('/api/users', users);
+app.use('/api/products', products);
+app.use('/api/reports', reports);
+app.use('/api/analytics', analytics);
+app.use('/api/recommendations', recommendations);
 
 // 404 handler
 app.all('*', (req, res, next) => {
@@ -32,7 +45,7 @@ app.all('*', (req, res, next) => {
 // error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json('Internal Server Error');
+    res.status(500).json('Unexpected Server Error');
 });
 
 // server

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/mytextfield.dart';
 import 'package:login_page/components/mybutton.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/login_services.dart';
 
 class Signup extends StatelessWidget {

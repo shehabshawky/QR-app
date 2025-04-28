@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:login_page/main.dart';
 import 'package:login_page/models/productmodel.dart';
+import 'package:login_page/pages/admin_main_home_screens/admin_view_product.dart';
 
 class Myproductlistview extends StatelessWidget {
   Productmodel productmodel;
@@ -14,7 +14,13 @@ class Myproductlistview extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, 'productview');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => AdminViewProduct(
+                    productinfo: productmodel,
+                  )),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -31,14 +37,16 @@ class Myproductlistview extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           child: Column(
             children: [
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage(productmodel.image!),
-                    radius: 20,
+                    foregroundImage: productmodel.image != null
+                        ? NetworkImage(productmodel.image!)
+                        : const AssetImage('lib/images/image.png'),
+                    radius: 30,
                   ),
                   const SizedBox(
                     width: 10,
@@ -46,19 +54,25 @@ class Myproductlistview extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        productmodel.name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
+                      Container(
+                        constraints: const BoxConstraints(
+                          maxWidth: 230,
+                          maxHeight: 40,
+                        ),
+                        child: Text(
+                          productmodel.name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const SizedBox(
                         height: 5,
                       ),
                       Text(
-                        "EGP ${productmodel.price} . ${productmodel.units} Units",
+                        "EGP ${productmodel.price} . ${productmodel.unitsCount} Units",
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black,
@@ -68,9 +82,7 @@ class Myproductlistview extends StatelessWidget {
                   ),
                   const Spacer(flex: 1),
                   IconButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, 'productview');
-                      },
+                      onPressed: () {},
                       icon: const Icon(
                         Icons.chevron_right,
                         size: 26,

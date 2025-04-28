@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:login_page/consts/consts.dart';
 
+// ignore: camel_case_types
 class AdminAcc_Services {
   final Dio dio;
 
@@ -14,7 +16,7 @@ class AdminAcc_Services {
       required String? token}) async {
     try {
       Response response = await dio.post(
-        'http://10.0.2.2:5000/api/users/create-admin-account',
+        '$baseUrl/users/create-admin-account',
         data: {
           "name": name,
           "email": email,

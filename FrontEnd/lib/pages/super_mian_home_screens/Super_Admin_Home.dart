@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:login_page/components/mybutton.dart';
 import 'package:login_page/components/myitemlist.dart';
-import 'package:login_page/main.dart';
+import 'package:login_page/consts/consts.dart';
 import 'package:login_page/services/get_admins_service.dart';
 import 'package:login_page/services/login_services.dart';
 
@@ -28,7 +28,7 @@ class _SuperAdminHomeState extends State<SuperAdminHome> {
     return await Future.delayed(const Duration(seconds: 0), () async {
       String? token = await LoginServices(Dio()).getToken();
       adminsList = await GetAdminsService().getAdmins(token);
-      print(token);
+
       setState(() {});
       isLoading = false;
     });
@@ -37,7 +37,7 @@ class _SuperAdminHomeState extends State<SuperAdminHome> {
   @override
   Widget build(BuildContext context) {
     return isLoading
-        ? Center(child: const CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
         : Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

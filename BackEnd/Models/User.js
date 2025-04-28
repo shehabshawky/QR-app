@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
+        required: [true, "role is required"],
         enum: ['client', 'admin', 'super_admin']
     },
     // for admin
@@ -29,10 +30,12 @@ const userSchema = new mongoose.Schema({
     // for client
     photo: String,
     address: String,
-    phone_number: String
+    phone_number: String,
+    scanned_units: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Unit' }]
 });
 
 userSchema.pre('save', async function (next) {
+    if (this.role !== 'client') this.scanned_units = undefined;
     if (!this.isModified('password')) return next();
     this.password = await bcrypt.hash(this.password, 10);
     next();
